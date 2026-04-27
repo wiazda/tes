@@ -1,0 +1,140 @@
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ujian Kompetensi Teknis KPP</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #f3f4f6; }
+        .question-card { display: none; }
+        .question-card.active { display: block; }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+    <div class="max-w-3xl mx-auto bg-white rounded-xl shadow-lg overflow-hidden">
+        <div class="bg-blue-600 p-6 text-white text-center">
+            <h1 class="text-2xl font-bold">Ujian Kompetensi Teknis Jabatan Struktural KPP</h1>
+            <p class="text-sm opacity-80">Berdasarkan KMK 271 & 434 Tahun 2025</p>
+        </div>
+
+        <div id="quiz-container" class="p-6">
+            <!-- Questions will be injected here -->
+        </div>
+
+        <div id="navigation" class="p-6 border-t flex justify-between items-center">
+            <button id="prev-btn" onclick="changeQuestion(-1)" class="bg-gray-200 px-4 py-2 rounded-lg font-semibold hover:bg-gray-300 disabled:opacity-50">Kembali</button>
+            <span id="progress" class="font-medium text-gray-600">Soal 1 dari 30</span>
+            <button id="next-btn" onclick="changeQuestion(1)" class="bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-700">Berikutnya</button>
+        </div>
+
+        <div id="result-page" class="hidden p-10 text-center">
+            <h2 class="text-3xl font-bold mb-4">Hasil Ujian Anda</h2>
+            <div id="score-display" class="text-6xl font-extrabold text-blue-600 mb-6">0</div>
+            <p id="feedback" class="text-xl mb-8 text-gray-700"></p>
+            <button onclick="location.reload()" class="bg-blue-600 text-white px-8 py-3 rounded-xl font-bold shadow-lg">Ulangi Ujian</button>
+        </div>
+    </div>
+
+    <script>
+        const questions = [
+            { q: "Berdasarkan Standar Kompetensi Jabatan, regulasi manakah yang mengatur standar kompetensi bagi Jabatan Administrator di lingkungan Kementerian Keuangan?", a: ["KMK Nomor 209 Tahun 2025", "KMK Nomor 271/MK/SJ/2025", "KMK Nomor 434/MK/PJ/2025", "KEP Menpan-RB Nomor SKJ.22 Tahun 2023"], correct: 1 },
+            { q: "Standar Kompetensi Jabatan Pengawas di lingkungan Direktorat Jenderal Pajak diatur secara khusus dalam...", a: ["Peraturan Menpan-RB Nomor 4 Tahun 2022", "KMK Nomor 209 Tahun 2025", "KMK Nomor 434/MK/PJ/2025", "KMK Nomor 271/MK/SJ/2025"], correct: 2 },
+            { q: "Setelah terbitnya aturan pada tahun 2025, alat ukur uji kompetensi teknis bagi pejabat struktural kini mengacu pada...", a: ["Materi kenaikan grading pelaksana", "Standar Kompetensi Teknis Jabatan", "Kamus Kompetensi Kementerian/Lembaga Lain", "Peraturan Menteri PAN RB Nomor 38 Tahun 2017"], correct: 1 },
+            { q: "Jabatan manakah yang memiliki level kompetensi teknis dominan Level 3 pada empat unit kompetensinya?", a: ["Jabatan Administrator", "Jabatan Pelaksana", "Jabatan Fungsional", "JPT Madya"], correct: 0 },
+            { q: "Jabatan manakah yang memiliki rentang level kompetensi teknis antara level 3 sampai level 2?", a: ["Jabatan Administrator", "Jabatan Pimpinan Tinggi Pratama", "Jabatan Pengawas", "Jabatan Pemeriksa Pajak"], correct: 2 },
+            { q: "Unit kompetensi 'Analisis Kepatuhan Wajib Pajak' dan 'Analisis Potensi Pajak' pada level 4 dipersyaratkan untuk jabatan...", a: ["Kepala Seksi Pengawasan", "Kepala Kantor Pelayanan Pajak", "Kepala Seksi Penjaminan Kualitas Data", "Kepala Subbagian Umum"], correct: 1 },
+            { q: "Siapakah yang dipersyaratkan memiliki kompetensi 'Advokasi Kebijakan Perpajakan' pada level 2?", a: ["Kepala Seksi Pengawasan", "Kepala Kantor Pelayanan Pajak", "Kepala Seksi Pelayanan", "Kepala Subbagian Umum"], correct: 0 },
+            { q: "Jabatan yang bertanggung jawab atas kompetensi 'Profiling Wajib Pajak' dan 'Pemeriksaan Pajak' pada level 3 adalah...", a: ["Kepala Seksi Pelayanan", "Kepala Seksi Penjaminan Kualitas Data", "Kepala Seksi Pemeriksaan, Penilaian, dan Penagihan", "Kepala Subbagian Umum"], correct: 2 },
+            { q: "Kompetensi 'Analisis Dokumen Layanan Perpajakan' level 3 merupakan standar bagi jabatan...", a: ["Kepala Seksi PKD", "Kepala Seksi Pelayanan", "Kepala Seksi Penagihan", "Kepala Subbagian Umum"], correct: 1 },
+            { q: "Jabatan struktural yang memiliki unit kompetensi 'Manajemen Sumber Daya Manusia ASN' level 3 adalah...", a: ["Kepala Kantor", "Kepala Seksi Pelayanan", "Kepala Subbagian Umum & Kepatuhan Internal", "Kepala Seksi Pengawasan"], correct: 2 },
+            { q: "Unit kompetensi 'Pengelolaan Database' level 2 dan 'Pengelolaan Jaringan Internet' level 3 secara spesifik menjadi standar bagi...", a: ["Kepala Subbagian Umum", "Kepala Seksi Pelayanan", "Kepala Seksi Penjaminan Kualitas Data", "Kepala Seksi Pemeriksaan"], correct: 2 },
+            { q: "Jabatan manakah yang bertugas melakukan evaluasi pemberian layanan perpajakan (Analisis Dokumen Layanan Level 3)?", a: ["Kepala Seksi Pengawasan", "Kepala Seksi Pelayanan", "Kepala Subbagian Umum", "Kepala Seksi PKD"], correct: 1 },
+            { q: "Siapa yang bertanggung jawab menelaah hasil analisis potensi pajak (Analisis Potensi Pajak Level 3)?", a: ["Kepala Seksi Pengawasan", "Kepala Kantor", "Kepala Seksi Pelayanan", "Kepala Subbagian Umum"], correct: 0 },
+            { q: "Jabatan yang dipersyaratkan mampu menentukan rekomendasi kebijakan kepatuhan (Analisis Kepatuhan Wajib Pajak Level 4) adalah...", a: ["Kepala Seksi Pengawasan", "Kepala Kantor", "Kepala Seksi Pelayanan", "Kepala Seksi PKD"], correct: 1 },
+            { q: "Evaluasi hasil analisis data dan informasi ekstensifikasi (Ekstensifikasi Perpajakan Level 3) merupakan tugas dari...", a: ["Kepala Kantor", "Kepala Seksi Pengawasan", "Kepala Seksi P3", "Kepala Seksi Pelayanan"], correct: 1 },
+            { q: "Jabatan manakah yang dipersyaratkan mampu melakukan evaluasi kinerja tindakan penagihan (Pelaksanaan Tindakan Penagihan Pajak Level 3)?", a: ["Kepala Seksi Pelayanan", "Kepala Seksi Pengawasan", "Kepala Seksi P3 (Pemeriksaan, Penilaian, dan Penagihan)", "Kepala Subbagian Umum"], correct: 2 },
+            { q: "Siapakah yang memiliki tanggung jawab pada kompetensi 'Profiling Wajib Pajak' Level 3?", a: ["Kepala Seksi Pengawasan", "Kepala Seksi Pelayanan", "Kepala Subbagian Umum", "Kepala Kantor"], correct: 0 },
+            { q: "Kompetensi untuk melakukan telaahan hasil analisis dan rekomendasi tindak lanjut pemeriksaan (Pemeriksaan Pajak Level 3) wajib dimiliki oleh...", a: ["Kepala Seksi Pengawasan", "Kepala Seksi P3", "Kepala Seksi Pelayanan", "Kepala Kantor"], correct: 1 },
+            { q: "Melakukan Penilaian Bisnis I (Penilaian Untuk Tujuan Perpajakan Level 2) merupakan kompetensi teknis bagi...", a: ["Kepala Seksi Pengawasan", "Kepala Kantor", "Kepala Seksi P3", "Kepala Seksi Pelayanan"], correct: 2 },
+            { q: "Menganalisis data hasil pengukuran/pemetaan (Pelaksanaan Pemetaan Level 4) ditujukan untuk jabatan...", a: ["Kepala Seksi PKD", "Kepala Seksi P3", "Kepala Seksi Pengawasan", "Kepala Kantor"], correct: 1 },
+            { q: "Melakukan evaluasi penatausahaan piutang pajak (Penatausahaan Penagihan Pajak Level 3) adalah tugas...", a: ["Kepala Seksi Pengawasan", "Kepala Subbagian Umum", "Kepala Seksi P3", "Kepala Kantor"], correct: 2 },
+            { q: "Jabatan yang bertugas menyusun/mengemas informasi publik bidang perpajakan (Level 3) adalah...", a: ["Kepala Subbagian Umum", "Kepala Seksi Pelayanan", "Kepala Seksi Pengawasan", "Kepala Kantor"], correct: 1 },
+            { q: "Menyelenggarakan pelaksanaan pengelolaan pengaduan masyarakat (Level 3) merupakan kompetensi dari...", a: ["Kepala Seksi Pengawasan", "Kepala Subbagian Umum", "Kepala Seksi Pelayanan", "Kepala Seksi PKD"], correct: 2 },
+            { q: "Menyusun kebijakan operasional dan strategi advokasi penganggaran (Level 3) adalah unit kompetensi untuk...", a: ["Kepala Kantor", "Kepala Seksi Pelayanan", "Kepala SUKI (Subbagian Umum dan Kepatuhan Internal)", "Kepala Seksi PKD"], correct: 2 },
+            { q: "Jabatan manakah yang melakukan analisis kebutuhan advokasi pengelolaan kekayaan negara (Level 2)?", a: ["Kepala Seksi Pelayanan", "Kepala SUKI", "Kepala Seksi P3", "Kepala Kantor"], correct: 1 },
+            { q: "Menyelenggarakan dan membimbing pelaksanaan manajemen perkantoran (Level 3) adalah tugas...", a: ["Kepala Kantor", "Kepala Seksi Pelayanan", "Kepala SUKI", "Kepala Seksi Pengawasan"], correct: 2 },
+            { q: "Melakukan analisis data dan informasi terkait manajemen kinerja organisasi (Level 2) dipersyaratkan bagi...", a: ["Kepala Seksi Pengawasan", "Kepala Seksi Pelayanan", "Kepala SUKI", "Kepala Kantor"], correct: 2 },
+            { q: "Melaksanakan inovasi pelayanan publik sesuai pedoman kerja (Level 2) merupakan standar bagi...", a: ["Kepala Seksi Pengawasan", "Kepala Seksi Pelayanan", "Kepala Subbagian Umum", "Kepala Kantor"], correct: 1 },
+            { q: "Menyelenggarakan dan membimbing pelaksanaan penegakan integritas ASN (Level 3) adalah tanggung jawab...", a: ["Kepala Kantor", "Kepala Seksi Pelayanan", "Kepala SUKI", "Kepala Seksi Pengawasan"], correct: 2 },
+            { q: "Mampu menyediakan arsip dinamis secara utuh dan lengkap (Pengelolaan Arsip Dinamis Level 2) merupakan standar kompetensi bagi...", a: ["Kepala Seksi Pengawasan", "Kepala Seksi Pelayanan", "Kepala Subbagian Umum", "Kepala Seksi PKD"], correct: 1 }
+        ];
+
+        let currentIdx = 0;
+        let userAnswers = new Array(questions.length).fill(null);
+
+        const container = document.getElementById('quiz-container');
+        
+        questions.forEach((q, i) => {
+            const div = document.createElement('div');
+            div.className = `question-card ${i === 0 ? 'active' : ''}`;
+            div.innerHTML = `
+                <p class="text-lg font-bold text-gray-800 mb-4">${i+1}. ${q.q}</p>
+                <div class="space-y-3">
+                    ${q.a.map((opt, optIdx) => `
+                        <label class="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-blue-50 transition-colors">
+                            <input type="radio" name="q${i}" class="mr-3 h-5 w-5" onclick="selectAnswer(${i}, ${optIdx})" ${userAnswers[i] === optIdx ? 'checked' : ''}>
+                            <span class="text-gray-700">${opt}</span>
+                        </label>
+                    `).join('')}
+                </div>
+            `;
+            container.appendChild(div);
+        });
+
+        function selectAnswer(qIdx, optIdx) {
+            userAnswers[qIdx] = optIdx;
+        }
+
+        function changeQuestion(step) {
+            const cards = document.querySelectorAll('.question-card');
+            cards[currentIdx].classList.remove('active');
+            
+            currentIdx += step;
+
+            if (currentIdx >= questions.length) {
+                showResults();
+                return;
+            }
+            
+            cards[currentIdx].classList.add('active');
+            updateUI();
+        }
+
+        function updateUI() {
+            document.getElementById('prev-btn').disabled = currentIdx === 0;
+            document.getElementById('next-btn').innerText = currentIdx === questions.length - 1 ? 'Selesai' : 'Berikutnya';
+            document.getElementById('progress').innerText = `Soal ${currentIdx + 1} dari ${questions.length}`;
+        }
+
+        function showResults() {
+            let score = 0;
+            userAnswers.forEach((ans, i) => {
+                if (ans === questions[i].correct) score++;
+            });
+
+            const finalScore = Math.round((score / questions.length) * 100);
+            document.getElementById('quiz-container').classList.add('hidden');
+            document.getElementById('navigation').classList.add('hidden');
+            document.getElementById('result-page').classList.remove('hidden');
+            document.getElementById('score-display').innerText = finalScore;
+            
+            let msg = finalScore >= 80 ? "Luar Biasa! Anda Menguasai Materi." : 
+                      finalScore >= 60 ? "Bagus! Terus Tingkatkan Pemahaman Anda." : 
+                      "Saran: Pelajari Kembali Materi Kompetensi Teknis.";
+            document.getElementById('feedback').innerText = msg;
+        }
+    </script>
+</body>
+</html>
